@@ -1,0 +1,3 @@
+# m h  dom mon dow   command
+46 15 * * * (. ~/.local/share/python3/envs/web_scraping/bin/activate && cd ~/projects/olx_scraper_project && scrapy crawl olx -O data/olx.json) > errors.txt 2>&1
+47 15 * * * (. ~/.local/share/python3/envs/web_scraping/bin/activate && cd ~/projects/olx_scraper_project/telegram && python main.py) > errors.txt 2>&1
