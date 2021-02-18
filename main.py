@@ -14,6 +14,8 @@ load_dotenv()
 TOKEN = os.getenv('TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 url = "https://api.telegram.org/bot" + TOKEN
+OUTPUT_PATH="./data/"
+OUTPUT_FILE="items.json"
 
 class LinksSpider(scrapy.Spider):
     name = "links"
@@ -34,8 +36,8 @@ class LinksSpider(scrapy.Spider):
             yield {
                 'href': item.xpath(self.dictionary[self.cur_site]['href']).get(),
                 'title': item.xpath(self.dictionary[self.cur_site]['title']).get(),
-                'place': item.xpath(self.dictionary[self.cur_site]['place']).getall()[0],
-                'date': item.xpath(self.dictionary[self.cur_site]['date']).getall()[1],
+                'place': item.xpath(self.dictionary[self.cur_site]['place']).get(),
+                'date': item.xpath(self.dictionary[self.cur_site]['date']).get(),
                 'price': item.xpath(self.dictionary[self.cur_site]['price']).get(),
             }
 
@@ -57,7 +59,7 @@ if __name__ == "__main__":
     #Scraping
     process = CrawlerProcess(settings={
         "FEEDS": {
-            "data/olx.json": {
+            "data/items.json": {
                 "format": "json",
                 "overwrite": "True",
             },
@@ -72,11 +74,12 @@ if __name__ == "__main__":
     process.start()
 
     # Updating the data files and sending to telegram
-    old = open("./data/olx_old.json", "r+")
-    new = open("./data/olx.json", "r+")
-    old_data=json.load(old)
-    new_data=json.load(new)
-    for i in new_data:
-        if i not in old_data:
-            send(i)
-    shutil.copy2("./data/olx.json", "./data/olx_old.json")
+    if os.path.exists("./data/items_old.json"):
+        old = open("./data/items_old.json", "r+")
+        new = open("./data/items.json", "r+")
+        old_data=json.load(old)
+        new_data=json.load(new)
+        for i in new_data:
+            if i not in old_data:
+                send(i)
+    shutil.copy2("./data/items.json", "./data/items_old.json")
