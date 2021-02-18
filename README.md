@@ -1,5 +1,5 @@
 # PTSW
-### python telegram scraper watcher (who comes-up with these names? Oh, I do)
+##### *python telegram scraper watcher (who comes-up with these names? Oh, I do)*
 
 A python script that scrapes e-commerce websites for new products and sends you informations about them through Telegram.
 
@@ -7,7 +7,7 @@ PTSW has the ability to scrape multiple websites and update the xpath selectors 
 
 ## But why, why another webscraper?
 I needed a scraper that was specific enough for the need of finding new items on e-commerce sites, yet general enough so that I can scrape multiple sites with it.
-````~~~~~
+
 ## Installation
 Make sure you have Python 3 installed. I recommend [Miniconda]( https://docs.conda.io/en/latest/miniconda.html ), I find it easier to manage your environments.
 ~~~pip3 install -r requirements.txt~~~
