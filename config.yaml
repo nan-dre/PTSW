@@ -1,0 +1,18 @@
+---
+olx:
+  link: 'https://webcache.googleusercontent.com/search?q=cache:Mo84ecp8oMwJ:https://www.olx.ro/oferte/q-tastatura-razer/+&cd=1&hl=en&ct=clnk&gl=ro&client=ubuntu'
+  root: '//div[@class="offer-wrapper"]/table/tbody'
+  href: 'tr/td/div/h3/a/@href'
+  title: 'tr/td/div/h3/a/strong/text()'
+  place: 'tr/td/div/p/small/span/text()' 
+  date: 'tr/td/div/p/small/span/text()'
+  price: 'tr/td/div/p/strong/text()'
+
+olx2:
+  link: 'https://webcache.googleusercontent.com/search?q=cache:smT0yhjYVWUJ:https://www.olx.ro/oferte/q-mouse-gaming/+&cd=1&hl=en&ct=clnk&gl=ro&client=ubuntu'
+  root: '//div[@class="offer-wrapper"]/table/tbody'
+  href: 'tr/td/div/h3/a/@href'
+  title: 'tr/td/div/h3/a/strong/text()'
+  place: 'tr/td/div/p/small/span/text()' 
+  date: 'tr/td/div/p/small/span/text()'
+  price: 'tr/td/div/p/strong/text()'
