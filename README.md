@@ -43,6 +43,15 @@ There is an example config.yaml in the repo.
 
 I used scrapy shell in order to find the correct xpaths for each website. [Here](https://docs.scrapy.org/en/latest/topics/selectors.html) is more information on scrapy and selectors.
 
+After creating these files, you can run the script:
+```
+python main.py
+```
+
+On it's first run it will create a items.json file in the **data** and a items_old.json, which contains a copy of items.json. On latter runs, it will compare items.json with items_old.json to check if new products have appeared on the site. If that happens, it will send you a telegram message with the new products.
+
+I suggest setting up a cron job that runs this script every day (or every 5 minutes, if you wish, beware that some sites might ban your ip if there is too much traffic, see [avoid getting banned](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned))
+
 ## Dependencies
 Some python3 libraries:
 * scrapy
