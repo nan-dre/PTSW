@@ -1,6 +1,7 @@
 import scrapy
 from scrapy.crawler import CrawlerProcess
 
+from datetime import datetime
 import os
 import shutil
 import requests
@@ -48,9 +49,16 @@ def send(item):
         f"{item['href']}"
 
     )
-    send_text = url + "/sendMessage" + "?chat_id=" + CHAT_ID + "&parse_mode=Markdown&text=" + message
+    # Escape Markdown reserved characters
+    reserved_chars = '''_*[]()~`>#+-=|{}.!'''
+    mapper = ['\\' + c for c in reserved_chars]
+    result_mapping = str.maketrans(dict(zip(reserved_chars, mapper)))
+    message = message.translate(result_mapping)
+
+    # Create the link and make the get request
+    send_text = url + "/sendMessage" + "?chat_id=" + CHAT_ID + "&parse_mode=MarkdownV2&text=" + message
     response = requests.get(send_text)
-    print("Sending message...")
+    print(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + item['title'])
     return response.json()
 
 def main():
@@ -68,8 +76,8 @@ def main():
 
     })
 
-    process.crawl(LinksSpider)
-    process.start()
+    # process.crawl(LinksSpider)
+    # process.start()
 
     # Updating the data files and sending to telegram
     if os.path.exists("./data/items_old.json"):
