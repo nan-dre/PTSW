@@ -21,7 +21,7 @@ class LinksSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(LinksSpider, self).__init__(*args, **kwargs)
         with open("config.yaml", 'r') as f:
-            self.dictionary = yaml.load(f)
+            self.dictionary = yaml.safe_load(f)
 
     def start_requests(self):
         for site, key in self.dictionary.items():
