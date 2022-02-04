@@ -76,8 +76,8 @@ def main():
 
     })
 
-    # process.crawl(LinksSpider)
-    # process.start()
+    process.crawl(LinksSpider)
+    process.start()
 
     # Updating the data files and sending to telegram
     if os.path.exists("./data/items_old.json"):
