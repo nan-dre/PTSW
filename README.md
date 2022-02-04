@@ -54,7 +54,7 @@ I suggest setting up a cron job that runs this script periodically. Here's an ex
 */15 * * * * cd ~/projects/PTSW/ && python3 main.py >> log.txt
 ```
 
-Beware that some sites might ban your ip if there is too much traffic, see [avoid getting banned](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned))
+Beware that some sites might [ban your ip](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned) if there is too much traffic.
 
 ## Docker
 
