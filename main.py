@@ -1,13 +1,11 @@
 import scrapy
 from scrapy.crawler import CrawlerProcess
 
-from time import sleep
 import os
 import shutil
 import requests
 import json
 from dotenv import load_dotenv
-from pprint import pprint
 import yaml
 
 load_dotenv()
@@ -55,7 +53,7 @@ def send(item):
     print("Sending message...")
     return response.json()
 
-if __name__ == "__main__":
+def main():
     #Scraping
     process = CrawlerProcess(settings={
         "FEEDS": {
@@ -83,3 +81,6 @@ if __name__ == "__main__":
             if i not in old_data:
                 send(i)
     shutil.copy2("./data/items.json", "./data/items_old.json")
+
+if __name__ == "__main__":
+    main()
