@@ -48,7 +48,13 @@ python main.py
 
 On it's first run it will create a items.json file in the **data** folder and a items_old.json, which contains a copy of items.json. On latter runs, it will compare items.json with items_old.json to check if new products have appeared on the site. If that happens, it will send you a telegram message with the new products.
 
-I suggest setting up a cron job that runs this script every day (or every 5 minutes, if you wish, beware of some sites might ban your ip if there is too much traffic, see [avoid getting banned](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned))
+I suggest setting up a cron job that runs this script periodically. Here's an example that runs it every 15 minutes and logs the output to log.txt:
+
+```
+*/15 * * * * cd ~/projects/PTSW/ && python3 main.py >> log.txt
+```
+
+Beware that some sites might ban your ip if there is too much traffic, see [avoid getting banned](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned))
 
 ## Docker
 
