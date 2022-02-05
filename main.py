@@ -27,7 +27,7 @@ class LinksSpider(scrapy.Spider):
     def start_requests(self):
         for site, key in self.dictionary.items():
             self.cur_site = site
-            print(site)
+            print(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + site)
             yield scrapy.Request(url=key['link'], callback=self.parse)
 
     def parse(self, response):
@@ -58,7 +58,7 @@ def send(item):
     # Create the link and make the get request
     send_text = url + "/sendMessage" + "?chat_id=" + CHAT_ID + "&parse_mode=MarkdownV2&text=" + message
     response = requests.get(send_text)
-    print(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + item['title'])
+    print(item['title'])
     return response.json()
 
 def main():
