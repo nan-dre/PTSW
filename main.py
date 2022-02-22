@@ -85,9 +85,20 @@ def main():
         new = open("./data/items.json", "r+")
         old_data=json.load(old)
         new_data=json.load(new)
-        for i in new_data:
-            if i not in old_data:
-                send(i)
+        criterias = ['price', 'title']
+        # Check if there are new products by comparing the keys specified in criterias
+        # Pretty sure there's a more "pythonic" way to do this that I don't see
+        for new_el in new_data:
+            found = False
+            for old_el in old_data:
+                crit_found = 0
+                for crit in criterias:
+                    if new_el[crit] == old_el[crit]:
+                        crit_found += 1
+                if crit_found == len(criterias):
+                    found = True
+            if not found:
+                send(new_el)
     shutil.copy2("./data/items.json", "./data/items_old.json")
 
 if __name__ == "__main__":
