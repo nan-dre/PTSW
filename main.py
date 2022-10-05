@@ -1,21 +1,19 @@
-import scrapy
-from scrapy.crawler import CrawlerProcess
-
-from datetime import datetime
 import os
 import shutil
 import requests
 import json
-from dotenv import load_dotenv
+import scrapy
 import yaml
+from pathlib import Path
+from scrapy.crawler import CrawlerProcess
+from datetime import datetime
+from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 url = "https://api.telegram.org/bot" + TOKEN
-OUTPUT_PATH="./data/"
-OUTPUT_FILE="items.json"
-
+OUTPUT_PATH = Path("./data/")
 class LinksSpider(scrapy.Spider):
     name = "links"
 
@@ -40,6 +38,7 @@ class LinksSpider(scrapy.Spider):
                 'price': item.xpath(self.dictionary[self.cur_site]['price']).get(),
             }
 
+
 def send(item):
     message = (
         f"{item['title']}\n"
@@ -56,13 +55,15 @@ def send(item):
     message = message.translate(result_mapping)
 
     # Create the link and make the get request
-    send_text = url + "/sendMessage" + "?chat_id=" + CHAT_ID + "&parse_mode=MarkdownV2&text=" + message
+    send_text = url + "/sendMessage" + "?chat_id=" + \
+        CHAT_ID + "&parse_mode=MarkdownV2&text=" + message
     response = requests.get(send_text)
     print(item['title'])
     return response.json()
 
+
 def main():
-    #Scraping
+    # Scraping
     process = CrawlerProcess(settings={
         "FEEDS": {
             "data/items.json": {
@@ -83,8 +84,8 @@ def main():
     if os.path.exists("./data/items_old.json"):
         old = open("./data/items_old.json", "r+")
         new = open("./data/items.json", "r+")
-        old_data=json.load(old)
-        new_data=json.load(new)
+        old_data = json.load(old)
+        new_data = json.load(new)
         criterias = ['price', 'title']
         # Check if there are new products by comparing the keys specified in criterias
         # Pretty sure there's a more "pythonic" way to do this that I don't see
@@ -100,6 +101,7 @@ def main():
             if not found:
                 send(new_el)
     shutil.copy2("./data/items.json", "./data/items_old.json")
+
 
 if __name__ == "__main__":
     main()
