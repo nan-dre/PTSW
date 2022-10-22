@@ -29,29 +29,24 @@ CHAT_ID='<your-telegram-account-chat-id>'
 website_name:
   link: '<website_link>'
   root: '<root-xpath>'
-  href: '<href-xpath>'
-  title: '<title-xpath>'
-  place: '<place-xpath>'
-  date:  '<date-xpath>'
-  price: '<price-xpath>'
+  fields:
+    href: '<href-xpath>'
+    title: '<title-xpath>'
+    date:  '<date-xpath>'
+    price: '<price-xpath>'
 ```
-The root-xpath needs to be a common xpath for all other fields (something like an item container). In case you don't need a field, just put '/..' in it's place. 
+The root-xpath needs to be a common xpath for all the other fields (something like an item container). You can place any number of xpaths in the fields dict.
 
-There is an example config.yaml in the repo.
 
-I used scrapy shell in order to find the correct xpaths for each website. [Here](https://docs.scrapy.org/en/latest/topics/selectors.html) is more information on scrapy and selectors.
+I used the browser developer console and scrapy shell in order to find the correct xpaths for each website. [Here](https://docs.scrapy.org/en/latest/topics/selectors.html) is more information on scrapy and selectors. It's a _painstaking_ process to get the exact xpaths for each field, but this is the strong suit of the project: to be able to iterate quickly on multiple sites.
 
-After creating these files, you can run the script:
-```
-python main.py
-```
 
-On it's first run it will create a items.json file in the **data** folder and a items_old.json, which contains a copy of items.json. On latter runs, it will compare items.json with items_old.json to check if new products have appeared on the site. If that happens, it will send you a telegram message with the new products.
+Running the script will create a `new.json` file in the **data/<config_file_stem>** folder and a `old.json` file, which contains a copy of new.json. The `old.json` file contains the items scraped on latest run, and the `new.json` file contains items scraped on current run. The app will compare these to files to check if new products have appeared on the site. If that happens, it will send you a telegram message with the new products.
 
 I suggest setting up a cron job that runs this script periodically. Here's an example that runs it every 15 minutes and logs the output to log.txt:
 
 ```
-*/15 * * * * cd ~/projects/PTSW/ && python3 main.py >> log.txt
+*/15 * * * * cd ~/projects/PTSW/ && python3 main.py -c <config_file> -e <env_chat_id> >> log.txt
 ```
 
 Beware that some sites might [ban your ip](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned) if there is too much traffic.
