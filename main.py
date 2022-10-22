@@ -1,9 +1,11 @@
+import argparse
+import logging
 import os
-import shutil
 import requests
 import json
 import scrapy
 import yaml
+import shutil
 from pathlib import Path
 from scrapy.crawler import CrawlerProcess
 from datetime import datetime
@@ -11,15 +13,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
-CHAT_ID = os.getenv('CHAT_ID')
-url = "https://api.telegram.org/bot" + TOKEN
+BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
 OUTPUT_PATH = Path("./data/")
+NEW_FILE = Path('new.json')
+OLD_FILE = Path('old.json')
+
+
 class LinksSpider(scrapy.Spider):
     name = "links"
 
     def __init__(self, *args, **kwargs):
         super(LinksSpider, self).__init__(*args, **kwargs)
-        with open("config.yaml", 'r') as f:
+        with open(kwargs.get('config_path'), 'r') as f:
             self.dictionary = yaml.safe_load(f)
 
     def start_requests(self):
@@ -30,60 +35,51 @@ class LinksSpider(scrapy.Spider):
 
     def parse(self, response):
         for item in response.xpath(self.dictionary[self.cur_site]['root']):
-            yield {
-                'href': item.xpath(self.dictionary[self.cur_site]['href']).get(),
-                'title': item.xpath(self.dictionary[self.cur_site]['title']).get(),
-                'place': item.xpath(self.dictionary[self.cur_site]['place']).get(),
-                'date': item.xpath(self.dictionary[self.cur_site]['date']).get(),
-                'price': item.xpath(self.dictionary[self.cur_site]['price']).get(),
-            }
+            payload = {}
+            for field, path in self.dictionary[self.cur_site]['fields'].items():
+                payload[field] = item.xpath(path).get()
+            yield payload
 
 
-def send(item):
-    message = (
-        f"{item['title']}\n"
-        f"{item['price']}\n"
-        f"{item['place']} - "
-        f"{item['date']}\n"
-        f"{item['href']}"
-
-    )
+def send(item, chat_id):
+    message = ""
+    for field, value in item.items():
+        message += f'{value}\n'
     # Escape Markdown reserved characters
-    reserved_chars = '''_*[]()~`>#+-=|{}.!'''
+    reserved_chars = '''_*[]()~`>+-=|{}.!?'''
     mapper = ['\\' + c for c in reserved_chars]
     result_mapping = str.maketrans(dict(zip(reserved_chars, mapper)))
     message = message.translate(result_mapping)
+    message = message.replace('#', '')
 
     # Create the link and make the get request
-    send_text = url + "/sendMessage" + "?chat_id=" + \
-        CHAT_ID + "&parse_mode=MarkdownV2&text=" + message
+    send_text = f'{BASE_URL}/sendMessage?chat_id={chat_id}&parse_mode=MarkdownV2&text={message}'
     response = requests.get(send_text)
     print(item['title'])
     return response.json()
 
 
-def main():
-    # Scraping
+def start_scraping(config_path):
     process = CrawlerProcess(settings={
         "FEEDS": {
-            "data/items.json": {
+            OUTPUT_PATH / config_path.stem / NEW_FILE: {
                 "format": "json",
                 "overwrite": "True",
             },
         },
-        "USER_AGENT": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0",
+        "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0",
         "COOKIES_ENABLED": "False",
         "LOG_ENABLED": "False",
-
     })
 
-    process.crawl(LinksSpider)
+    process.crawl(LinksSpider, config_path=config_path)
     process.start()
 
-    # Updating the data files and sending to telegram
-    if os.path.exists("./data/items_old.json"):
-        old = open("./data/items_old.json", "r+")
-        new = open("./data/items.json", "r+")
+
+def check_data(old_file, new_file, chat_id):
+    if os.path.exists(old_file):
+        old = open(old_file, "r+")
+        new = open(new_file, "r+")
         old_data = json.load(old)
         new_data = json.load(new)
         criterias = ['price', 'title']
@@ -99,8 +95,33 @@ def main():
                 if crit_found == len(criterias):
                     found = True
             if not found:
-                send(new_el)
-    shutil.copy2("./data/items.json", "./data/items_old.json")
+                send(new_el, chat_id)
+    shutil.copy2(new_file, old_file)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config_path", required=True,
+                        help="Path to the config.yaml file")
+    parser.add_argument("-e", "--env_chat_id", required=True,
+                        help="Variable from env file containing the Chat ID")
+    args = parser.parse_args()
+
+    chat_id = os.getenv(args.env_chat_id)
+    config_path = Path(args.config_path)
+    old_file = OUTPUT_PATH / Path(args.config_path).stem / OLD_FILE
+    new_file = OUTPUT_PATH / Path(args.config_path).stem / NEW_FILE
+
+    if chat_id == None:
+        logging.error("Chat ID not found, exiting...")
+        exit()
+    if not config_path.exists():
+        logging.error("Config not found, exiting...")
+        exit()
+
+
+    start_scraping(config_path)
+    check_data(old_file, new_file, chat_id)
 
 
 if __name__ == "__main__":
