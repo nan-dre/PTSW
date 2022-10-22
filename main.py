@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from urllib.parse import urljoin
 import requests
 import json
 import scrapy
@@ -37,7 +38,10 @@ class LinksSpider(scrapy.Spider):
         for item in response.xpath(self.dictionary[self.cur_site]['root']):
             payload = {}
             for field, path in self.dictionary[self.cur_site]['fields'].items():
-                payload[field] = item.xpath(path).get()
+                if field == 'relative-href':
+                    payload['href'] = urljoin(self.dictionary[self.cur_site]['link'], item.xpath(path).get())
+                else:
+                    payload[field] = item.xpath(path).get()
             yield payload
 
 
