@@ -7,10 +7,15 @@ import json
 import scrapy
 import yaml
 import shutil
+import sys
 from pathlib import Path
 from scrapy.crawler import CrawlerProcess
 from datetime import datetime
 from dotenv import load_dotenv
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.getLogger('scrapy').propagate = False
+
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
@@ -31,10 +36,11 @@ class LinksSpider(scrapy.Spider):
     def start_requests(self):
         for site, key in self.dictionary.items():
             self.cur_site = site
-            print(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + site)
+            logging.info(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + site)
             yield scrapy.Request(url=key['link'], callback=self.parse)
 
     def parse(self, response):
+        logging.info(f"response.status:{response.status}")
         for item in response.xpath(self.dictionary[self.cur_site]['root']):
             payload = {}
             for field, path in self.dictionary[self.cur_site]['fields'].items():
@@ -59,7 +65,7 @@ def send(item, chat_id):
     # Create the link and make the get request
     send_text = f'{BASE_URL}/sendMessage?chat_id={chat_id}&parse_mode=MarkdownV2&text={message}'
     response = requests.get(send_text)
-    print(item['title'])
+    logging.info(item['title'])
     return response.json()
 
 
