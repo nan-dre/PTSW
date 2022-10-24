@@ -54,7 +54,7 @@ class LinksSpider(scrapy.Spider):
 def send(item, chat_id):
     message = ""
     for field, value in item.items():
-        message += f'{value}\n'
+        message += f'{value.strip()}\n'
     # Escape Markdown reserved characters
     reserved_chars = '''_*[]()~`>+-=|{}.!?'''
     mapper = ['\\' + c for c in reserved_chars]
