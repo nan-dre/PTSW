@@ -1,9 +1,10 @@
 ---
 olx:
-    link: "https://www.olx.ro/d/oferte/q-lumix-f1.7-25mm/"
+    link: "https://www.olx.ro/d/oferte/q-lumix-f1.7-25mm/?search%5Border%5D=filter_float_price:asc"
     root: '//div[@class="css-1apmciz"]'
     fields:
         relative-href: "../../../../a/@href"
         title: "div/h6/text()"
-        place: "div[2]/p/text()"
+        place: "div[2]/p/text()[1]"
+        date: "div[2]/p/text()[3]"
         price: "div[1]/p/text()"
