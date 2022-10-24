@@ -1,0 +1,9 @@
+---
+olx:
+    link: "https://www.olx.ro/d/oferte/q-lumix-f1.7-25mm/"
+    root: '//div[@class="css-1apmciz"]'
+    fields:
+        relative-href: "../../../../a/@href"
+        title: "div/h6/text()"
+        place: "div[2]/p/text()"
+        price: "div[1]/p/text()"
