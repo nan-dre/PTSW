@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger('scrapy').propagate = False
+logging.getLogger('urllib3').propagate = False
 
 
 load_dotenv()
