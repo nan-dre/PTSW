@@ -25,7 +25,6 @@ OUTPUT_PATH = Path("./data/")
 NEW_FILE = Path('new.json')
 OLD_FILE = Path('old.json')
 
-
 class LinksSpider(scrapy.Spider):
     name = "links"
 
@@ -35,7 +34,8 @@ class LinksSpider(scrapy.Spider):
 
     def start_requests(self):
         for product, value in self.dictionary.items():
-            logging.info(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + product)
+            logging.info(datetime.now().strftime(
+                "%m/%d/%Y %H:%M:%S") + ": " + product)
             yield scrapy.Request(url=value['link'], callback=self.parse_wrapper(product))
 
     def parse_wrapper(self, product):
@@ -46,7 +46,8 @@ class LinksSpider(scrapy.Spider):
                 payload['product'] = product
                 for field, path in self.dictionary[product]['fields'].items():
                     if field == 'relative-href':
-                        payload['href'] = urljoin(self.dictionary[product]['link'], item.xpath(path).get())
+                        payload['href'] = urljoin(
+                            self.dictionary[product]['link'], item.xpath(path).get())
                     else:
                         payload[field] = item.xpath(path).get()
                 yield payload
@@ -57,6 +58,8 @@ def send(item, chat_id, old_price=None, new_price=None):
     message = ""
     for field, value in item.items():
         message += f'{value.strip()}\n'
+    if new_price:
+        message += f'OLD price: {old_price}, NEW price: {new_price}\n'
     # Escape Markdown reserved characters
     reserved_chars = '''_*[]()~`>+-=|{}.!?'''
     mapper = ['\\' + c for c in reserved_chars]
@@ -64,13 +67,9 @@ def send(item, chat_id, old_price=None, new_price=None):
     message = message.translate(result_mapping)
     message = message.replace('#', '')
 
-    if new_price:
-        message += f'OLD price: {old_price}, NEW price: {new_price}\n'
-
-    # Create the link and make the get request
+    
     send_text = f'{BASE_URL}/sendMessage?chat_id={chat_id}&parse_mode=MarkdownV2&text={message}'
     response = requests.get(send_text)
-    logging.info(item['title'])
     return response.json()
 
 
@@ -90,6 +89,7 @@ def start_scraping(config, output_file):
     process.crawl(LinksSpider, config_dict=config)
     process.start()
 
+
 def check_data(old_file, new_file, chat_id, config):
     if os.path.exists(old_file):
         old = open(old_file, "r+")
@@ -105,18 +105,20 @@ def check_data(old_file, new_file, chat_id, config):
             grouped_new_data.setdefault(item['product'], []).append(item)
 
         for product in grouped_new_data:
-            pairs = {item['title']: item['price'] for item in grouped_old_data[product]}
+            pairs = {item['title']: item['price']
+                     for item in grouped_old_data[product]}
             # Check if there are new products by comparing the keys specified in criterias
             for new_item in grouped_new_data[product]:
-                new_price = int(new_item['price'].replace('.', ''))
+                new_price = float(new_item['price'].lower().replace('.', '').replace(',', '.').replace('lei', '').replace(' ', '').strip())
                 if new_item['title'] not in pairs:
                     if new_price <= config[product]['price-limit']:
-                        logging.info("New item - " + new_item['title'])
+                        logging.info("New item - " + new_item['title'].strip())
                         send(new_item, chat_id)
                 else:
-                    old_price = int(pairs[new_item['title']].replace('.', ''))
+                    old_price = float(pairs[new_item['title']].lower().replace('.', '').replace(',', '.').replace('lei', '').replace(' ', '').strip())
                     if (old_price - new_price) > config[product]['threshold']:
-                        logging.info(f"New price for {new_item['title']} - OLD: {old_price}, NEW: {new_price}")
+                        logging.info(
+                            f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
                         send(new_item, chat_id, old_price, new_price)
     shutil.copy2(new_file, old_file)
 
@@ -132,7 +134,7 @@ def main():
     chat_id = os.getenv(args.env_chat_id)
     config_path = Path(args.config_path)
     old_file = OUTPUT_PATH / config_path.stem / OLD_FILE
-    output_file = OUTPUT_PATH / config_path.stem / NEW_FILE 
+    output_file = OUTPUT_PATH / config_path.stem / NEW_FILE
 
     if chat_id == None:
         logging.error("Chat ID not found, exiting...")
