@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 import requests
 import json
 import scrapy
-import yaml
+import toml
 import shutil
 import sys
 from pathlib import Path
@@ -31,28 +31,29 @@ class LinksSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(LinksSpider, self).__init__(*args, **kwargs)
-        with open(kwargs.get('config_path'), 'r') as f:
-            self.dictionary = yaml.safe_load(f)
+        self.dictionary = kwargs.get('config_dict')
 
     def start_requests(self):
-        for site, key in self.dictionary.items():
-            self.cur_site = site
-            logging.info(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + site)
-            yield scrapy.Request(url=key['link'], callback=self.parse)
+        for product, value in self.dictionary.items():
+            logging.info(datetime.now().strftime("%m/%d/%Y %H:%M:%S") + ": " + product)
+            yield scrapy.Request(url=value['link'], callback=self.parse_wrapper(product))
 
-    def parse(self, response):
-        logging.info(f"response.status:{response.status}")
-        for item in response.xpath(self.dictionary[self.cur_site]['root']):
-            payload = {}
-            for field, path in self.dictionary[self.cur_site]['fields'].items():
-                if field == 'relative-href':
-                    payload['href'] = urljoin(self.dictionary[self.cur_site]['link'], item.xpath(path).get())
-                else:
-                    payload[field] = item.xpath(path).get()
-            yield payload
+    def parse_wrapper(self, product):
+        def parse(response):
+            logging.info(f"response.status:{response.status} - {product}")
+            for item in response.xpath(self.dictionary[product]['root']):
+                payload = {}
+                payload['product'] = product
+                for field, path in self.dictionary[product]['fields'].items():
+                    if field == 'relative-href':
+                        payload['href'] = urljoin(self.dictionary[product]['link'], item.xpath(path).get())
+                    else:
+                        payload[field] = item.xpath(path).get()
+                yield payload
+        return parse
 
 
-def send(item, chat_id):
+def send(item, chat_id, old_price=None, new_price=None):
     message = ""
     for field, value in item.items():
         message += f'{value.strip()}\n'
@@ -63,6 +64,9 @@ def send(item, chat_id):
     message = message.translate(result_mapping)
     message = message.replace('#', '')
 
+    if new_price:
+        message += f'OLD price: {old_price}, NEW price: {new_price}\n'
+
     # Create the link and make the get request
     send_text = f'{BASE_URL}/sendMessage?chat_id={chat_id}&parse_mode=MarkdownV2&text={message}'
     response = requests.get(send_text)
@@ -70,10 +74,10 @@ def send(item, chat_id):
     return response.json()
 
 
-def start_scraping(config_path):
+def start_scraping(config, output_file):
     process = CrawlerProcess(settings={
         "FEEDS": {
-            OUTPUT_PATH / config_path.stem / NEW_FILE: {
+            output_file: {
                 "format": "json",
                 "overwrite": "True",
             },
@@ -83,30 +87,37 @@ def start_scraping(config_path):
         "LOG_ENABLED": "False",
     })
 
-    process.crawl(LinksSpider, config_path=config_path)
+    process.crawl(LinksSpider, config_dict=config)
     process.start()
 
-
-def check_data(old_file, new_file, chat_id):
+def check_data(old_file, new_file, chat_id, config):
     if os.path.exists(old_file):
         old = open(old_file, "r+")
         new = open(new_file, "r+")
         old_data = json.load(old)
         new_data = json.load(new)
-        criterias = ['price', 'title']
-        # Check if there are new products by comparing the keys specified in criterias
-        # Pretty sure there's a more "pythonic" way to do this that I don't see
-        for new_el in new_data:
-            found = False
-            for old_el in old_data:
-                crit_found = 0
-                for crit in criterias:
-                    if new_el[crit] == old_el[crit]:
-                        crit_found += 1
-                if crit_found == len(criterias):
-                    found = True
-            if not found:
-                send(new_el, chat_id)
+
+        grouped_old_data = dict()
+        grouped_new_data = dict()
+        for item in old_data:
+            grouped_old_data.setdefault(item['product'], []).append(item)
+        for item in new_data:
+            grouped_new_data.setdefault(item['product'], []).append(item)
+
+        for product in grouped_new_data:
+            pairs = {item['title']: item['price'] for item in grouped_old_data[product]}
+            # Check if there are new products by comparing the keys specified in criterias
+            for new_item in grouped_new_data[product]:
+                new_price = int(new_item['price'].replace('.', ''))
+                if new_item['title'] not in pairs:
+                    if new_price <= config[product]['price-limit']:
+                        logging.info("New item - " + new_item['title'])
+                        send(new_item, chat_id)
+                else:
+                    old_price = int(pairs[new_item['title']].replace('.', ''))
+                    if (old_price - new_price) > config[product]['threshold']:
+                        logging.info(f"New price for {new_item['title']} - OLD: {old_price}, NEW: {new_price}")
+                        send(new_item, chat_id, old_price, new_price)
     shutil.copy2(new_file, old_file)
 
 
@@ -120,8 +131,8 @@ def main():
 
     chat_id = os.getenv(args.env_chat_id)
     config_path = Path(args.config_path)
-    old_file = OUTPUT_PATH / Path(args.config_path).stem / OLD_FILE
-    new_file = OUTPUT_PATH / Path(args.config_path).stem / NEW_FILE
+    old_file = OUTPUT_PATH / config_path.stem / OLD_FILE
+    output_file = OUTPUT_PATH / config_path.stem / NEW_FILE 
 
     if chat_id == None:
         logging.error("Chat ID not found, exiting...")
@@ -130,9 +141,10 @@ def main():
         logging.error("Config not found, exiting...")
         exit()
 
+    config = toml.load(args.config_path)
 
-    start_scraping(config_path)
-    check_data(old_file, new_file, chat_id)
+    # start_scraping(config, output_file)
+    check_data(old_file, output_file, chat_id, config)
 
 
 if __name__ == "__main__":
