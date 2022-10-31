@@ -1,9 +1,0 @@
----
-emag:
-    link: "https://www.emag.ro/placi_video/filter/procesor-video-f9897,nvidia-geforce-rtx-3060-v-9758167/sort-priceasc/c"
-    root: '//div[@class="card-item card-standard js-product-data"]'
-    fields:
-        title: "div/div/div/div/a/text()"
-        stoc: "div/div/div/div/div/div/text()"
-        price: 'div/div/div/div/p[@class="product-new-price"]/text()'
-        href: "div/div/div/div/a/@href"
