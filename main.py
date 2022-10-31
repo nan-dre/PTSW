@@ -143,7 +143,7 @@ def main():
 
     config = toml.load(args.config_path)
 
-    # start_scraping(config, output_file)
+    start_scraping(config, output_file)
     check_data(old_file, output_file, chat_id, config)
 
 
