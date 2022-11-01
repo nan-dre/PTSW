@@ -1,4 +1,5 @@
 import argparse
+from gc import callbacks
 import logging
 import os
 from urllib.parse import urljoin
@@ -10,12 +11,15 @@ import shutil
 import sys
 from pathlib import Path
 from scrapy.crawler import CrawlerProcess
+from scrapy_selenium import SeleniumRequest
 from datetime import datetime
 from dotenv import load_dotenv
+from pyvirtualdisplay import Display
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger('scrapy').propagate = False
 logging.getLogger('urllib3').propagate = False
+logging.getLogger('selenium').propagate = False
 
 
 load_dotenv()
@@ -25,6 +29,7 @@ OUTPUT_PATH = Path("./data/")
 NEW_FILE = Path('new.json')
 OLD_FILE = Path('old.json')
 
+
 class LinksSpider(scrapy.Spider):
     name = "links"
 
@@ -33,10 +38,14 @@ class LinksSpider(scrapy.Spider):
         self.dictionary = kwargs.get('config_dict')
 
     def start_requests(self):
-        for product, value in self.dictionary.items():
+        for product, options in self.dictionary.items():
             logging.info(datetime.now().strftime(
                 "%m/%d/%Y %H:%M:%S") + ": " + product)
-            yield scrapy.Request(url=value['link'], callback=self.parse_wrapper(product))
+
+            if options.get('driver') == 'selenium':
+                yield SeleniumRequest(url=options['link'], callback=self.parse_wrapper(product))
+            else:
+                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product))
 
     def parse_wrapper(self, product):
         def parse(response):
@@ -54,7 +63,7 @@ class LinksSpider(scrapy.Spider):
         return parse
 
 
-def send(item, chat_id, old_price=None, new_price=None):
+def send(item, chat_ids, old_price=None, new_price=None):
     message = ""
     for field, value in item.items():
         message += f'{value.strip()}\n'
@@ -67,10 +76,9 @@ def send(item, chat_id, old_price=None, new_price=None):
     message = message.translate(result_mapping)
     message = message.replace('#', '')
 
-    
-    send_text = f'{BASE_URL}/sendMessage?chat_id={chat_id}&parse_mode=MarkdownV2&text={message}'
-    response = requests.get(send_text)
-    return response.json()
+    for id in chat_ids:
+        send_text = f'{BASE_URL}/sendMessage?chat_id={id}&parse_mode=MarkdownV2&text={message}'
+        response = requests.get(send_text)
 
 
 def start_scraping(config, output_file):
@@ -84,10 +92,20 @@ def start_scraping(config, output_file):
         "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0",
         "COOKIES_ENABLED": "False",
         "LOG_ENABLED": "False",
+        "SELENIUM_DRIVER_NAME": "chrome",
+        "SELENIUM_DRIVER_EXECUTABLE_PATH": "chromedriver",
+        "SELENIUM_DRIVER_ARGUMENTS": '[]',
+        "DOWNLOADER_MIDDLEWARES": {
+            'scrapy_selenium.SeleniumMiddleware': 800
+        },
     })
 
     process.crawl(LinksSpider, config_dict=config)
     process.start()
+
+
+def parse_price(price):
+    return float(price.lower().replace('.', '').replace(' ', '').replace(',', '.').replace('lei', '').replace('ron', '').strip())
 
 
 def check_data(old_file, new_file, chat_id, config):
@@ -109,13 +127,13 @@ def check_data(old_file, new_file, chat_id, config):
                      for item in grouped_old_data[product]}
             # Check if there are new products by comparing the keys specified in criterias
             for new_item in grouped_new_data[product]:
-                new_price = float(new_item['price'].lower().replace('.', '').replace(',', '.').replace('lei', '').replace(' ', '').strip())
+                new_price = parse_price(new_item['price'])
                 if new_item['title'] not in pairs:
                     if new_price <= config[product]['price-limit']:
                         logging.info("New item - " + new_item['title'].strip())
                         send(new_item, chat_id)
                 else:
-                    old_price = float(pairs[new_item['title']].lower().replace('.', '').replace(',', '.').replace('lei', '').replace(' ', '').strip())
+                    old_price = parse_price(pairs[new_item['title']])
                     if (old_price - new_price) > config[product]['threshold']:
                         logging.info(
                             f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
@@ -127,26 +145,36 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_path", required=True,
                         help="Path to the config.yaml file")
-    parser.add_argument("-e", "--env_chat_id", required=True,
-                        help="Variable from env file containing the Chat ID")
+    parser.add_argument("-e", "--env_chat_ids", required=True, action='store', nargs='+',
+                        help="Variables from env file containing the Chat IDs")
     args = parser.parse_args()
 
-    chat_id = os.getenv(args.env_chat_id)
     config_path = Path(args.config_path)
     old_file = OUTPUT_PATH / config_path.stem / OLD_FILE
     output_file = OUTPUT_PATH / config_path.stem / NEW_FILE
 
-    if chat_id == None:
-        logging.error("Chat ID not found, exiting...")
-        exit()
     if not config_path.exists():
         logging.error("Config not found, exiting...")
         exit()
 
+    chat_ids = []
+    for name in args.env_chat_ids:
+        id = os.getenv(name)
+        if id == None:
+            logging.error(f"ID for {name} not found, exiting...")
+            exit()
+        chat_ids.append(id)
+
     config = toml.load(args.config_path)
 
+    try:
+        display = Display(visible=0, size=(1024, 768))
+        display.start()
+    except:
+        logging.warning("Cannot emulate display")
+
     start_scraping(config, output_file)
-    check_data(old_file, output_file, chat_id, config)
+    check_data(old_file, output_file, chat_ids, config)
 
 
 if __name__ == "__main__":

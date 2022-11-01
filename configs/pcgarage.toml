@@ -1,6 +1,7 @@
 [pcgarage]
 link = 'https://www.pcgarage.ro/placi-video/filtre/chipset-seria-geforce-rtx-3000/memorie-dimensiune-memorie-12288/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
+driver = 'selenium'
 threshold = 10
 price-limit = 2200
 
