@@ -20,6 +20,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger('scrapy').propagate = False
 logging.getLogger('urllib3').propagate = False
 logging.getLogger('selenium').propagate = False
+logging.getLogger('pyvirtualdisplay').propagate = False
 
 
 load_dotenv()
@@ -170,11 +171,16 @@ def main():
     try:
         display = Display(visible=0, size=(1024, 768))
         display.start()
+        display_emulated = True
     except:
+        display_emulated = False
         logging.warning("Cannot emulate display")
 
     start_scraping(config, output_file)
     check_data(old_file, output_file, chat_ids, config)
+
+    if display_emulated:
+        display.stop()
 
 
 if __name__ == "__main__":
