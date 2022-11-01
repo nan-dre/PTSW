@@ -2,3 +2,4 @@ scrapy
 requests
 python-dotenv
 toml
+scrapy_selenium
