@@ -1,5 +1,4 @@
 import argparse
-from gc import callbacks
 import logging
 import os
 from urllib.parse import urljoin
@@ -10,17 +9,15 @@ import toml
 import shutil
 import sys
 from pathlib import Path
-from scrapy.crawler import CrawlerProcess
-from scrapy_selenium import SeleniumRequest
+from scrapy.crawler import CrawlerProcess, install_reactor
 from datetime import datetime
 from dotenv import load_dotenv
-from pyvirtualdisplay import Display
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger('scrapy').propagate = False
 logging.getLogger('urllib3').propagate = False
 logging.getLogger('selenium').propagate = False
-logging.getLogger('pyvirtualdisplay').propagate = False
+logging.getLogger('scrapy-playwright').propagate = False
 
 
 load_dotenv()
@@ -43,10 +40,10 @@ class LinksSpider(scrapy.Spider):
             logging.info(datetime.now().strftime(
                 "%m/%d/%Y %H:%M:%S") + ": " + product)
 
-            if options.get('driver') == 'selenium':
-                yield SeleniumRequest(url=options['link'], callback=self.parse_wrapper(product))
+            if options.get('driver') == 'playwright':
+                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product), meta={"playwright": True})
             else:
-                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product))
+                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product), meta={"playwright": False})
 
     def parse_wrapper(self, product):
         def parse(response):
@@ -55,7 +52,7 @@ class LinksSpider(scrapy.Spider):
                 payload = {}
                 payload['product'] = product
                 for field, path in self.dictionary[product]['fields'].items():
-                    if field == 'relative-href':
+                    if field == 'href':
                         payload['href'] = urljoin(
                             self.dictionary[product]['link'], item.xpath(path).get())
                     else:
@@ -83,6 +80,7 @@ def send(item, chat_ids, old_price=None, new_price=None):
 
 
 def start_scraping(config, output_file):
+    install_reactor('twisted.internet.asyncioreactor.AsyncioSelectorReactor')
     process = CrawlerProcess(settings={
         "FEEDS": {
             output_file: {
@@ -93,12 +91,11 @@ def start_scraping(config, output_file):
         "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0",
         "COOKIES_ENABLED": "False",
         "LOG_ENABLED": "False",
-        "SELENIUM_DRIVER_NAME": "chrome",
-        "SELENIUM_DRIVER_EXECUTABLE_PATH": "chromedriver",
-        "SELENIUM_DRIVER_ARGUMENTS": '[]',
-        "DOWNLOADER_MIDDLEWARES": {
-            'scrapy_selenium.SeleniumMiddleware': 800
+        "DOWNLOAD_HANDLERS": { "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
         },
+        "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+        "PLAYWRIGHT_BROWSER_TYPE": "chromium",
     })
 
     process.crawl(LinksSpider, config_dict=config)
@@ -167,20 +164,8 @@ def main():
         chat_ids.append(id)
 
     config = toml.load(args.config_path)
-
-    try:
-        display = Display(visible=0, size=(1024, 768))
-        display.start()
-        display_emulated = True
-    except:
-        display_emulated = False
-        logging.warning("Cannot emulate display")
-
     start_scraping(config, output_file)
     check_data(old_file, output_file, chat_ids, config)
-
-    if display_emulated:
-        display.stop()
 
 
 if __name__ == "__main__":
