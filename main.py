@@ -72,7 +72,7 @@ def send(item, chat_ids, old_price=None, new_price=None):
     mapper = ['\\' + c for c in reserved_chars]
     result_mapping = str.maketrans(dict(zip(reserved_chars, mapper)))
     message = message.translate(result_mapping)
-    message = message.replace('#', '')
+    message = message.replace('#', '').replace('&', '')
 
     for id in chat_ids:
         send_text = f'{BASE_URL}/sendMessage?chat_id={id}&parse_mode=MarkdownV2&text={message}'
@@ -107,35 +107,41 @@ def parse_price(price):
 
 
 def check_data(old_file, new_file, chat_id, config):
-    if os.path.exists(old_file):
-        old = open(old_file, "r+")
-        new = open(new_file, "r+")
-        old_data = json.load(old)
-        new_data = json.load(new)
+    if(not old_file.exists()):
+        with open(old_file, "w+") as f:
+            f.write("[]")
 
-        grouped_old_data = dict()
-        grouped_new_data = dict()
-        for item in old_data:
-            grouped_old_data.setdefault(item['product'], []).append(item)
-        for item in new_data:
-            grouped_new_data.setdefault(item['product'], []).append(item)
+    old = open(old_file, "r+")
+    new = open(new_file, "r+")
+    old_data = json.load(old)
+    new_data = json.load(new)
 
-        for product in grouped_new_data:
+    grouped_old_data = dict()
+    grouped_new_data = dict()
+    for item in old_data:
+        grouped_old_data.setdefault(item['product'], []).append(item)
+    for item in new_data:
+        grouped_new_data.setdefault(item['product'], []).append(item)
+
+    for product in grouped_new_data:
+        if grouped_old_data.get(product) is not None:
             pairs = {item['title']: item['price']
-                     for item in grouped_old_data[product]}
-            # Check if there are new products by comparing the keys specified in criterias
-            for new_item in grouped_new_data[product]:
-                new_price = parse_price(new_item['price'])
-                if new_item['title'] not in pairs:
-                    if new_price <= config[product]['price-limit']:
-                        logging.info("New item - " + new_item['title'].strip())
-                        send(new_item, chat_id)
-                else:
-                    old_price = parse_price(pairs[new_item['title']])
-                    if (old_price - new_price) > config[product]['threshold']:
-                        logging.info(
-                            f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                        send(new_item, chat_id, old_price, new_price)
+                    for item in grouped_old_data[product]}
+        else:
+            pairs = {}
+        # Check if there are new products by comparing the keys specified in criterias
+        for new_item in grouped_new_data[product]:
+            new_price = parse_price(new_item['price'])
+            if new_item['title'] not in pairs:
+                if new_price <= config[product]['price-limit']:
+                    logging.info("New item - " + new_item['title'].strip())
+                    send(new_item, chat_id)
+            else:
+                old_price = parse_price(pairs[new_item['title']])
+                if abs(old_price - new_price) > config[product]['threshold'] and new_price <= config[product]['price-limit']:
+                    logging.info(
+                        f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
+                    send(new_item, chat_id, old_price, new_price)
     shutil.copy2(new_file, old_file)
 
 
