@@ -8,4 +8,4 @@ price-limit = 2200
 title = 'div/a/@title'
 stoc = 'div/div/a/span/text()'
 price = 'div/div/div/span/text()'
-relative-href = 'div/a/@href'
+href = 'div/a/@href'
