@@ -18,6 +18,7 @@ logging.getLogger('scrapy').propagate = False
 logging.getLogger('urllib3').propagate = False
 logging.getLogger('selenium').propagate = False
 logging.getLogger('scrapy-playwright').propagate = False
+logging.getLogger('asyncio').propagate = False
 
 
 load_dotenv()
@@ -97,6 +98,7 @@ def start_scraping(config, output_file):
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         "PLAYWRIGHT_BROWSER_TYPE": "chromium",
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 0,
+        "REQUEST_FINGERPRINTER_IMPLEMENTATION": '2.7',
     })
 
     process.crawl(LinksSpider, config_dict=config)
