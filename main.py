@@ -96,6 +96,7 @@ def start_scraping(config, output_file):
         },
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         "PLAYWRIGHT_BROWSER_TYPE": "chromium",
+        "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 0,
     })
 
     process.crawl(LinksSpider, config_dict=config)
