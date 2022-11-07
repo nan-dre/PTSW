@@ -3,7 +3,7 @@ link = 'https://www.pcgarage.ro/placi-video/filtre/chipset-seria-geforce-rtx-300
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 driver = 'playwright'
 threshold = 0
-price-limit = 5000 
+price-limit = 2500 
 
 [rtx3060.fields]
 title = './/h2[@class="my-0"]/a/text()'
@@ -16,7 +16,7 @@ link = 'https://www.pcgarage.ro/placi-de-baza/filtre/general-soclu-procesor-sock
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 driver = 'playwright'
 threshold = 10
-price-limit = 2200
+price-limit = 2000
 
 [mb-intel.fields]
 title = './/h2[@class="my-0"]/a/text()'
@@ -29,7 +29,7 @@ link = 'https://www.pcgarage.ro/placi-de-baza/filtre/general-soclu-procesor-sock
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 driver = 'playwright'
 threshold = 0
-price-limit = 5000 
+price-limit = 2000 
 
 [mb-amd.fields]
 title = './/h2[@class="my-0"]/a/text()'
@@ -68,7 +68,7 @@ link = 'https://www.pcgarage.ro/memorii/filtre/general-tip-ddr5/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 driver = 'playwright'
 threshold = 0
-price-limit = 5000 
+price-limit = 1000 
 
 [ddr5.fields]
 title = './/h2[@class="my-0"]/a/text()'
