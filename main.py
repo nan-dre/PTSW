@@ -62,7 +62,13 @@ class LinksSpider(scrapy.Spider):
         return parse
 
 
-def send(item, chat_ids, old_price=None, new_price=None):
+def send_message(message, chat_ids):
+    for id in chat_ids:
+        send_text = f'{BASE_URL}/sendMessage?chat_id={id}&parse_mode=MarkdownV2&text={message}'
+        response = requests.get(send_text)
+
+
+def craft_message(item, old_price=None, new_price=None):
     message = ""
     for field, value in item.items():
         message += f'{value.strip()}\n'
@@ -74,10 +80,7 @@ def send(item, chat_ids, old_price=None, new_price=None):
     result_mapping = str.maketrans(dict(zip(reserved_chars, mapper)))
     message = message.translate(result_mapping)
     message = message.replace('#', '').replace('&', '')
-
-    for id in chat_ids:
-        send_text = f'{BASE_URL}/sendMessage?chat_id={id}&parse_mode=MarkdownV2&text={message}'
-        response = requests.get(send_text)
+    return message
 
 
 def start_scraping(config, output_file):
@@ -92,9 +95,9 @@ def start_scraping(config, output_file):
         "USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0",
         "COOKIES_ENABLED": "False",
         "LOG_ENABLED": "False",
-        "DOWNLOAD_HANDLERS": { "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-        },
+        "DOWNLOAD_HANDLERS": {"http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                              "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                              },
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         "PLAYWRIGHT_BROWSER_TYPE": "chromium",
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 0,
@@ -109,8 +112,8 @@ def parse_price(price):
     return float(price.lower().replace('.', '').replace(' ', '').replace(',', '.').replace('lei', '').replace('ron', '').strip())
 
 
-def check_data(old_file, new_file, chat_id, config):
-    if(not old_file.exists()):
+def check_data(old_file, new_file, chat_ids, config, website):
+    if (not old_file.exists()):
         with open(old_file, "w+") as f:
             f.write("[]")
 
@@ -119,33 +122,42 @@ def check_data(old_file, new_file, chat_id, config):
     old_data = json.load(old)
     new_data = json.load(new)
 
-    grouped_old_data = dict()
-    grouped_new_data = dict()
-    for item in old_data:
-        grouped_old_data.setdefault(item['product'], []).append(item)
-    for item in new_data:
-        grouped_new_data.setdefault(item['product'], []).append(item)
+    if len(new_data) == 0:
+        send_message(
+            f"WARNING: Couldn't scrape items from {website}!", chat_ids)
+        logging.warning(
+            f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: WARNING: Couldn't scrape items from {website}!")
 
-    for product in grouped_new_data:
-        if grouped_old_data.get(product) is not None:
-            pairs = {item['title']: item['price']
-                    for item in grouped_old_data[product]}
-        else:
-            pairs = {}
-        # Check if there are new products by comparing the keys specified in criterias
-        for new_item in grouped_new_data[product]:
-            new_price = parse_price(new_item['price'])
-            if new_item['title'] not in pairs:
-                if new_price <= config[product]['price-limit']:
-                    logging.info("New item - " + new_item['title'].strip())
-                    send(new_item, chat_id)
+    else:
+        grouped_old_data = dict()
+        grouped_new_data = dict()
+        for item in old_data:
+            grouped_old_data.setdefault(item['product'], []).append(item)
+        for item in new_data:
+            grouped_new_data.setdefault(item['product'], []).append(item)
+
+        for product in grouped_new_data:
+            if grouped_old_data.get(product) is not None:
+                pairs = {item['title']: item['price']
+                         for item in grouped_old_data[product]}
             else:
-                old_price = parse_price(pairs[new_item['title']])
-                if abs(old_price - new_price) > config[product]['threshold'] and new_price <= config[product]['price-limit']:
-                    logging.info(
-                        f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                    send(new_item, chat_id, old_price, new_price)
-    shutil.copy2(new_file, old_file)
+                pairs = {}
+            # Check if there are new products by comparing the keys specified in criterias
+            for new_item in grouped_new_data[product]:
+                new_price = parse_price(new_item['price'])
+                if new_item['title'] not in pairs:
+                    if new_price <= config[product]['price-limit']:
+                        logging.info("New item - " + new_item['title'].strip())
+                        message = craft_message(new_item)
+                        send_message(message, chat_ids)
+                else:
+                    old_price = parse_price(pairs[new_item['title']])
+                    if abs(old_price - new_price) > config[product]['threshold'] and new_price <= config[product]['price-limit']:
+                        logging.info(
+                            f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
+                        message = craft_message(new_item, old_price, new_price)
+                        send_message(message, chat_ids)
+        shutil.copy2(new_file, old_file)
 
 
 def main():
@@ -174,7 +186,7 @@ def main():
 
     config = toml.load(args.config_path)
     start_scraping(config, output_file)
-    check_data(old_file, output_file, chat_ids, config)
+    check_data(old_file, output_file, chat_ids, config, config_path.stem)
 
 
 if __name__ == "__main__":
