@@ -68,12 +68,16 @@ def send_message(message, chat_ids):
         response = requests.get(send_text)
 
 
-def craft_message(item, old_price=None, new_price=None):
+def craft_message(reason, new_item, old_item=None):
     message = ""
-    for field, value in item.items():
+    if reason == 'new':
+        message += f'NEW product '
+    elif reason == 'stoc':
+        message += f'STOCK change \nOLD stock: {old_item["stoc"].strip()} \nNEW stock: {new_item["stoc"].strip()}\n'
+    elif reason == 'price':
+        message += f'PRICE change \nOLD price: {old_item["price"].strip()} \nNEW price: {new_item["price"].strip()}\n'
+    for _, value in new_item.items():
         message += f'{value.strip()}\n'
-    if new_price:
-        message += f'OLD price: {old_price}, NEW price: {new_price}\n'
     # Escape Markdown reserved characters
     reserved_chars = '''_*[]()~`>+-=|{}.!?'''
     mapper = ['\\' + c for c in reserved_chars]
@@ -123,8 +127,7 @@ def check_data(old_file, new_file, chat_ids, config, website):
     new_data = json.load(new)
 
     if len(new_data) == 0:
-        send_message(
-            f"WARNING: Couldn't scrape items from {website}!", chat_ids)
+        send_message(f"WARNING: Couldn't scrape items from {website}!", chat_ids)
         logging.warning(
             f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: WARNING: Couldn't scrape items from {website}!")
 
@@ -138,26 +141,32 @@ def check_data(old_file, new_file, chat_ids, config, website):
 
         for product in grouped_new_data:
             if grouped_old_data.get(product) is not None:
-                pairs = {item['title']: item['price']
+                old_items = {item['href']: {'price': item['price'], 'stoc': item['stoc']}
                          for item in grouped_old_data[product]}
             else:
-                pairs = {}
+                old_items = {}
             # Check if there are new products by comparing the keys specified in criterias
             for new_item in grouped_new_data[product]:
+                message = None
+                key = new_item['href']
                 new_price = parse_price(new_item['price'])
-                if new_item['title'] not in pairs:
+                if key not in old_items:
                     if new_price <= config[product]['price-limit']:
                         logging.info("New item - " + new_item['title'].strip())
-                        message = craft_message(new_item)
-                        send_message(message, chat_ids)
+                        message = craft_message(new_item=new_item, reason='new')
+                elif new_item['stoc'] != old_items[key]['stoc']:
+                        logging.info("New stock update " + key.strip())
+                        message = craft_message(reason='stoc', new_item=new_item, old_item=old_items[key])
                 else:
-                    old_price = parse_price(pairs[new_item['title']])
+                    old_price = parse_price(old_items[key]['price'])
                     if abs(old_price - new_price) > config[product]['threshold'] and new_price <= config[product]['price-limit']:
                         logging.info(
                             f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                        message = craft_message(new_item, old_price, new_price)
-                        send_message(message, chat_ids)
+                        message = craft_message(reason='price', new_item=new_item, old_item=old_items[key])
+                if message != None:
+                    send_message(message, chat_ids)
         shutil.copy2(new_file, old_file)
+
 
 
 def main():
