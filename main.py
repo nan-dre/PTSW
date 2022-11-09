@@ -150,19 +150,19 @@ def check_data(old_file, new_file, chat_ids, config, website):
                 message = None
                 key = new_item['href']
                 new_price = parse_price(new_item['price'])
-                if key not in old_items:
-                    if new_price <= config[product]['price-limit']:
-                        logging.info("New item - " + new_item['title'].strip())
-                        message = craft_message(new_item=new_item, reason='new')
-                elif new_item['stoc'] != old_items[key]['stoc']:
-                        logging.info("New stock update " + key.strip())
-                        message = craft_message(reason='stoc', new_item=new_item, old_item=old_items[key])
-                else:
-                    old_price = parse_price(old_items[key]['price'])
-                    if abs(old_price - new_price) > config[product]['threshold'] and new_price <= config[product]['price-limit']:
-                        logging.info(
-                            f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                        message = craft_message(reason='price', new_item=new_item, old_item=old_items[key])
+                if new_price <= config[product]['price-limit']:
+                    if key not in old_items:
+                            logging.info("New item - " + new_item['title'].strip())
+                            message = craft_message(new_item=new_item, reason='new')
+                    elif new_item['stoc'] != old_items[key]['stoc']:
+                            logging.info("New stock update " + key.strip())
+                            message = craft_message(reason='stoc', new_item=new_item, old_item=old_items[key])
+                    else:
+                        old_price = parse_price(old_items[key]['price'])
+                        if abs(old_price - new_price) > config[product]['threshold']:
+                            logging.info(
+                                f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
+                            message = craft_message(reason='price', new_item=new_item, old_item=old_items[key])
                 if message != None:
                     send_message(message, chat_ids)
         shutil.copy2(new_file, old_file)
