@@ -1,0 +1,12 @@
+[rtx3060]
+link = "https://www.vexio.ro/placi-video/filtre/chipset-model-geforce-rtx-3060/"
+root = '//article[contains(@class, "product-box")]'
+next-page = '//div[contains(@class, "product-box")]/a/@href'
+threshold = 10
+price-limit = 2200
+
+[rtx3060.fields]
+title = './/h2[contains(@class, "name")]/a/@title'
+stoc = './/div[contains(@class, "availability")]/text()'
+price = './/div[contains(@class, "price")]/div/strong/text()'
+href = './/h2[contains(@class, "name")]/a/@href'
