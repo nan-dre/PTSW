@@ -1,88 +1,63 @@
-# [emag]
-# link = "https://www.emag.ro/monitoare-lcd-led/filter/rata-de-refresh-maximala-f6605,144-hz-v24571/rata-de-refresh-maximala-f6605,165-hz-v24576/rata-de-refresh-maximala-f6605,240-hz-v24578/sort-priceasc/c?ref=lst_leftbar_6605_24578"
-# root = '//div[@class="card-item card-standard js-product-data"]'
-# threshold = 0
-# price-limit = 800
-
-# [emag.fields]
-# title = "div/div/div/div/a/text()"
-# stoc = "div/div/div/div/div/div/text()"
-# price = 'div/div/div/div/p[@class="product-new-price"]/text()'
-# href = "div/div/div/div/a/@href"
-
-# [pcgarage144]
-# link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-144/'
-# root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-# driver = 'playwright'
-# threshold = 0
-# price-limit = 800 
-
-# [pcgarage144.fields]
-# title = './/h2[@class="my-0"]/a/text()'
-# date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-# price = './/p[@class="price"]/text()'
-# href = './/h2[@class="my-0"]/a/@href'
-
-# [pcgarage165]
-# link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-165/'
-# root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-# driver = 'playwright'
-# threshold = 0
-# price-limit = 800 
-
-# [pcgarage165.fields]
-# title = './/h2[@class="my-0"]/a/text()'
-# date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-# price = './/p[@class="price"]/text()'
-# href = './/h2[@class="my-0"]/a/@href'
-
-# [pcgarage240]
-# link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-240/'
-# root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-# driver = 'playwright'
-# threshold = 0
-# price-limit = 800 
-
-# [pcgarage240.fields]
-# title = './/h2[@class="my-0"]/a/text()'
-# date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-# price = './/p[@class="price"]/text()'
-# href = './/h2[@class="my-0"]/a/@href'
-
-# [altex]
-# link = 'https://altex.ro/monitoare-pc/cpl/filtru/order/price/dir/asc/rata-refresh-8676/240-hz_165-hz_144-hz/'
-# root = '//a[@class="Product  flex flex-col relative hover:shadow-mixRedYellow"]'
-# driver = 'playwright'
-# threshold = 0
-# price-limit = 800 
-
-# [altex.fields]
-# title = 'h2[contains(@class, "Product-nameHeading")]/text()'
-# price = 'div/div/div[contains(@class, "Price-current")]/span/text()'
-# stoc = 'div[contains(@class, "flex")]/text()'
-# href = '@href'
-
-[altex]
-link = 'https://altex.ro/alimentare-gaz/cpl/filtru/order/price/dir/asc/aprindere-electrica-8588/da/'
-root = '//a[@class="Product  flex flex-col relative hover:shadow-mixRedYellow"]'
-driver = 'playwright'
-threshold = 0
-price-limit = 2500
-
-[altex.fields]
-title = 'h2[contains(@class, "Product-nameHeading")]/text()'
-price = 'div/div/div[contains(@class, "Price-current")]/span/text()'
-stoc = 'div[contains(@class, "flex")]/text()'
-href = '@href'
-
 [emag]
-link = "https://www.emag.ro/aragazuri/filter/alimentare-cuptor-f8793,gaz-v-145228/vendor/emag/sort-priceasc/c?ref=delete_filter_left_bar"
+link = "https://www.emag.ro/monitoare-lcd-led/filter/rata-de-refresh-maximala-f6605,144-hz-v24571/rata-de-refresh-maximala-f6605,165-hz-v24576/rata-de-refresh-maximala-f6605,240-hz-v24578/sort-priceasc/c?ref=lst_leftbar_6605_24578"
 root = '//div[@class="card-item card-standard js-product-data"]'
 threshold = 0
-price-limit = 2500
+price-limit = 800
 
 [emag.fields]
 title = "div/div/div/div/a/text()"
 stoc = "div/div/div/div/div/div/text()"
 price = 'div/div/div/div/p[@class="product-new-price"]/text()'
 href = "div/div/div/div/a/@href"
+
+[pcgarage144]
+link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-144/'
+root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
+driver = 'playwright'
+threshold = 0
+price-limit = 800 
+
+[pcgarage144.fields]
+title = './/h2[@class="my-0"]/a/text()'
+date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
+price = './/p[@class="price"]/text()'
+href = './/h2[@class="my-0"]/a/@href'
+
+[pcgarage165]
+link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-165/'
+root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
+driver = 'playwright'
+threshold = 0
+price-limit = 800 
+
+[pcgarage165.fields]
+title = './/h2[@class="my-0"]/a/text()'
+date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
+price = './/p[@class="price"]/text()'
+href = './/h2[@class="my-0"]/a/@href'
+
+[pcgarage240]
+link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-refresh-rate-240/'
+root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
+driver = 'playwright'
+threshold = 0
+price-limit = 800 
+
+[pcgarage240.fields]
+title = './/h2[@class="my-0"]/a/text()'
+date = '''.//div[contains(@class, 'product_box_availability')]/text()'''
+price = './/p[@class="price"]/text()'
+href = './/h2[@class="my-0"]/a/@href'
+
+[altex]
+link = 'https://altex.ro/monitoare-pc/cpl/filtru/order/price/dir/asc/rata-refresh-8676/240-hz_165-hz_144-hz/'
+root = '//a[@class="Product  flex flex-col relative hover:shadow-mixRedYellow"]'
+driver = 'playwright'
+threshold = 0
+price-limit = 800 
+
+[altex.fields]
+title = 'h2[contains(@class, "Product-nameHeading")]/text()'
+price = 'div/div/div[contains(@class, "Price-current")]/span/text()'
+stoc = 'div[contains(@class, "flex")]/text()'
+href = '@href'
