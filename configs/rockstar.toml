@@ -1,0 +1,13 @@
+name = 'rockstar'
+link = 'https://www.rockstargames.com/careers/openings'
+root = '//div[contains(@class, "af07421b41d05eb636c2")]/div/div/div/a'
+next-page = ''
+type = 'job-listing'
+driver = 'playwright'
+keywords = ['junior', 'associate', 'graduate']
+
+[fields]
+href = '@href'
+position = 'text()'
+department = '../../h4/a/text()'
+company = '../../../h3/a/text()'
