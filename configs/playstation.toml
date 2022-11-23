@@ -1,0 +1,13 @@
+name = 'playstation'
+link = 'https://www.playstation.com/en-gb/corporate/playstation-careers/#listings'
+root = '//div[@class="columns box"]/div[contains(@class, "job-item")]'
+next-page = ''
+type = 'job-listing'
+driver = 'playwright'
+keywords = ['junior', 'associate', 'graduate']
+
+[fields]
+href = 'h5/a/@href'
+position = 'h5/a/text()'
+location = 'p/text()'
+department = '(preceding-sibling::h4/text())[last()]'
