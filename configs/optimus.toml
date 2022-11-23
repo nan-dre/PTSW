@@ -1,10 +1,12 @@
-[raspi]
+name = 'optimusdigital'
 link = 'https://www.optimusdigital.ro/ro/288-placi-raspberry-pi?orderby=quantity&orderway=desc&orderway=desc'
 root = '//li[contains(@class, "ajax_block_product")]'
-threshold = 0 
-price-limit = 1500
+next-page = '//li[contains(@id, "pagination_next")]/a/@href'
+type = 'product-listing'
+price-limit = 800
+threshold = 10
 
-[raspi.fields]
+[fields]
 title = 'div/div/h5/a/text()'
 stoc = 'div/div/span/span/text()'
 price = 'div/div/div/span/text()'
