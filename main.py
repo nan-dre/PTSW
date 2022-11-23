@@ -186,12 +186,14 @@ def check_data(old_file, new_file, chat_ids, config, website):
                     send_message(message, chat_ids)
     elif config['type'] == 'job-listing':
         for listing in new_data:
-            position = listing.get('position')
+            position = listing.get('position').lower()
             for word in config['keywords']:
                 if word in position and listing not in old_data:
+                    logging.info("New position - " +
+                                    listing['position'].strip())
                     message = craft_message(reason='new_job_listing', new_item=listing)
                     send_message(message, chat_ids)
-        # shutil.copy2(new_file, old_file)
+        shutil.copy2(new_file, old_file)
 
 
 def main():
