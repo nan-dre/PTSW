@@ -10,6 +10,8 @@ import shutil
 import sys
 from pathlib import Path
 from scrapy.crawler import CrawlerProcess, install_reactor
+from scrapy_playwright.page import PageMethod
+from scrapy.shell import inspect_response
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -37,25 +39,33 @@ class LinksSpider(scrapy.Spider):
         self.dictionary = kwargs.get('config_dict')
 
     def start_requests(self):
-        for product, options in self.dictionary.items():
-            logging.info(datetime.now().strftime(
-                "%m/%d/%Y %H:%M:%S") + ": " + product)
+        options = self.dictionary
+        logging.info(datetime.now().strftime(
+            "%m/%d/%Y %H:%M:%S") + ": " + options.get('name'))
 
-            if options.get('driver') == 'playwright':
-                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product), meta={"playwright": True})
-            else:
-                yield scrapy.Request(url=options['link'], callback=self.parse_wrapper(product), meta={"playwright": False})
+        if options.get('driver') == 'playwright':
+            yield scrapy.Request(url=options.get('link'),
+                                 callback=self.parse_wrapper(
+                                     product=options.get('name')),
+                                 meta=dict(playwright=True,
+                                           playwright_page_methods=[
+                                               PageMethod(
+                                                   "wait_for_timeout", 3000)
+                                           ]))
+        else:
+            yield scrapy.Request(url=options.get('link'), callback=self.parse_wrapper(options.get('name')), meta={"playwright": False})
 
     def parse_wrapper(self, product):
         def parse(response):
             logging.info(f"response.status:{response.status} - {product}")
-            for item in response.xpath(self.dictionary[product]['root']):
+            # inspect_response(response, self)
+            for item in response.xpath(self.dictionary['root']):
                 payload = {}
                 payload['product'] = product
-                for field, path in self.dictionary[product]['fields'].items():
+                for field, path in self.dictionary['fields'].items():
                     if field == 'href':
                         payload['href'] = urljoin(
-                            self.dictionary[product]['link'], item.xpath(path).get())
+                            self.dictionary['link'], item.xpath(path).get())
                     else:
                         payload[field] = item.xpath(path).get()
                 yield payload
@@ -71,11 +81,13 @@ def send_message(message, chat_ids):
 def craft_message(reason, new_item, old_item=None):
     message = ""
     if reason == 'new':
-        message += f'NEW product '
+        message += f'NEW product'
     elif reason == 'stoc':
         message += f'STOCK change \nOLD stock: {old_item["stoc"].strip()} \nNEW stock: {new_item["stoc"].strip()}\n'
     elif reason == 'price':
         message += f'PRICE change \nOLD price: {old_item["price"].strip()} \nNEW price: {new_item["price"].strip()}\n'
+    elif reason == 'job_listing':
+        message += f'NEW job found'
     for _, value in new_item.items():
         message += f'{value.strip()}\n'
     # Escape Markdown reserved characters
@@ -124,14 +136,16 @@ def check_data(old_file, new_file, chat_ids, config, website):
     old = open(old_file, "r+")
     new = open(new_file, "r+")
     old_data = json.load(old)
-    new_data = json.load(new)
-
-    if len(new_data) == 0:
-        send_message(f"WARNING: Couldn't scrape items from {website}!", chat_ids)
+    try:
+        new_data = json.load(new)
+    except:
+        new_data = [] 
+        send_message(
+            f"WARNING: Couldn't scrape items from {website}\\!", chat_ids)
         logging.warning(
             f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: WARNING: Couldn't scrape items from {website}!")
 
-    else:
+    if config['type'] == 'product-listing':
         grouped_old_data = dict()
         grouped_new_data = dict()
         for item in old_data:
@@ -142,7 +156,7 @@ def check_data(old_file, new_file, chat_ids, config, website):
         for product in grouped_new_data:
             if grouped_old_data.get(product) is not None:
                 old_items = {item['href']: {'price': item['price'], 'stoc': item['stoc']}
-                         for item in grouped_old_data[product]}
+                                for item in grouped_old_data[product]}
             else:
                 old_items = {}
             # Check if there are new products by comparing the keys specified in criterias
@@ -150,23 +164,34 @@ def check_data(old_file, new_file, chat_ids, config, website):
                 message = None
                 key = new_item['href']
                 new_price = parse_price(new_item['price'])
-                if new_price <= config[product]['price-limit']:
+                if new_price <= config['price-limit']:
                     if key not in old_items:
-                            logging.info("New item - " + new_item['title'].strip())
-                            message = craft_message(new_item=new_item, reason='new')
+                        logging.info("New item - " +
+                                        new_item['title'].strip())
+                        message = craft_message(
+                            new_item=new_item, reason='new')
                     elif new_item['stoc'] != old_items[key]['stoc']:
-                            logging.info("New stock update " + key.strip())
-                            message = craft_message(reason='stoc', new_item=new_item, old_item=old_items[key])
+                        logging.info("New stock update " + key.strip())
+                        message = craft_message(
+                            reason='stoc', new_item=new_item, old_item=old_items[key])
                     else:
-                        old_price = parse_price(old_items[key]['price'])
-                        if abs(old_price - new_price) > config[product]['threshold']:
+                        old_price = parse_price(
+                            old_items[key]['price'])
+                        if abs(old_price - new_price) > config['threshold']:
                             logging.info(
                                 f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                            message = craft_message(reason='price', new_item=new_item, old_item=old_items[key])
+                            message = craft_message(
+                                reason='price', new_item=new_item, old_item=old_items[key])
                 if message != None:
                     send_message(message, chat_ids)
-        shutil.copy2(new_file, old_file)
-
+    elif config['type'] == 'job-listing':
+        for listing in new_data:
+            position = listing.get('position')
+            for word in config['keywords']:
+                if word in position and listing not in old_data:
+                    message = craft_message(reason='new_job_listing', new_item=listing)
+                    send_message(message, chat_ids)
+        # shutil.copy2(new_file, old_file)
 
 
 def main():
@@ -175,6 +200,8 @@ def main():
                         help="Path to the config.yaml file")
     parser.add_argument("-e", "--env_chat_ids", required=True, action='store', nargs='+',
                         help="Variables from env file containing the Chat IDs")
+    parser.add_argument("-s", "--subscribers",
+                        help="Path to subscribers.toml file")
     args = parser.parse_args()
 
     config_path = Path(args.config_path)
