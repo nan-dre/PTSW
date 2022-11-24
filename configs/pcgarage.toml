@@ -1,76 +1,12 @@
-[rtx3060]
+name = 'pcgarage'
 link = 'https://www.pcgarage.ro/placi-video/filtre/chipset-seria-geforce-rtx-3000/memorie-dimensiune-memorie-12288/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
+next-page = '//a[@aria-label="Pagina urmatoare"]/@href'
 driver = 'playwright'
-threshold = 0
 price-limit = 2500 
-
-[rtx3060.fields]
-title = './/h2[@class="my-0"]/a/text()'
-stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-price = './/p[@class="price"]/text()'
-href = './/h2[@class="my-0"]/a/@href'
-
-[mb-intel]
-link = 'https://www.pcgarage.ro/placi-de-baza/filtre/general-soclu-procesor-socket-1700/'
-root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-driver = 'playwright'
-threshold = 10
-price-limit = 1500
-
-[mb-intel.fields]
-title = './/h2[@class="my-0"]/a/text()'
-stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-price = './/p[@class="price"]/text()'
-href = './/h2[@class="my-0"]/a/@href'
-
-[mb-amd]
-link = 'https://www.pcgarage.ro/placi-de-baza/filtre/general-soclu-procesor-socket-am5/'
-root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-driver = 'playwright'
 threshold = 0
-price-limit = 1500 
 
-[mb-amd.fields]
-title = './/h2[@class="my-0"]/a/text()'
-stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-price = './/p[@class="price"]/text()'
-href = './/h2[@class="my-0"]/a/@href'
-
-[intel13]
-link = 'https://www.pcgarage.ro/procesoare/filtre/general-socket-1700/'
-root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-driver = 'playwright'
-threshold = 0
-price-limit = 3000 
-
-[intel13.fields]
-title = './/h2[@class="my-0"]/a/text()'
-stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-price = './/p[@class="price"]/text()'
-href = './/h2[@class="my-0"]/a/@href'
-
-[amd5]
-link = 'https://www.pcgarage.ro/procesoare/filtre/general-socket-am5/'
-root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-driver = 'playwright'
-threshold = 0
-price-limit = 3000
-
-[amd5.fields]
-title = './/h2[@class="my-0"]/a/text()'
-stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
-price = './/p[@class="price"]/text()'
-href = './/h2[@class="my-0"]/a/@href'
-
-[ddr5]
-link = 'https://www.pcgarage.ro/memorii/filtre/general-tip-ddr5/'
-root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
-driver = 'playwright'
-threshold = 0
-price-limit = 700 
-
-[ddr5.fields]
+[fields]
 title = './/h2[@class="my-0"]/a/text()'
 stoc = '''.//div[contains(@class, 'product_box_availability')]/text()'''
 price = './/p[@class="price"]/text()'

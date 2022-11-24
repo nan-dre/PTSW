@@ -1,10 +1,12 @@
-[rtx3060-evomag]
+name = 'evomag'
 link = 'https://www.evomag.ro/componente-pc-gaming-placi-video/filtru/model+chipset:geforce+rtx+3060,ordonare:pretcrescator'
 root = '//div[@class="nice_product_item"]'
+next-page = '//a[@rel="next"]/@href'
+type = 'product-listing'
 threshold = 10
 price-limit = 2200
 
-[rtx3060-evomag.fields]
+[fields]
 title = 'div/a/@title'
 stoc = 'div/div/a/span/text()'
 price = 'div/div/div/span/text()'
