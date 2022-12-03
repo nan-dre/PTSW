@@ -68,6 +68,22 @@ class LinksSpider(scrapy.Spider):
                     else:
                         payload[field] = item.xpath(path).get()
                 yield payload
+            if self.dictionary.get('next-page') is not None:
+                next_page = response.xpath(self.dictionary.get('next-page')).get()
+                if next_page is not None:
+                    next_page_url = response.urljoin(next_page)
+                    options = self.dictionary
+                    if options.get('driver') == 'playwright':
+                        yield scrapy.Request(url=next_page_url,
+                                            callback=self.parse_wrapper(
+                                                product=options.get('name')),
+                                            meta=dict(playwright=True,
+                                                    playwright_page_methods=[
+                                                        PageMethod(
+                                                            "wait_for_timeout", 3000)
+                                                    ]))
+                    else:
+                        yield scrapy.Request(url=next_page_url, callback=self.parse_wrapper(options.get('name')), meta={"playwright": False})
         return parse
 
 
