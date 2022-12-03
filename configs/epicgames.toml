@@ -1,7 +1,7 @@
 name = 'epic'
 link = "https://www.epicgames.com/site/en-US/careers/jobs?sessionInvalidated=true"
 root = '//div[contains(@class, "JobsViewstyles__FilteredResults-sc-xcdagw-2")]/a'
-next-page = '//a[contains(@class, "pagination-btn arrow")]/@href'
+next-page = '//a[contains(@class, "pagination-btn arrow")]/i[@class="icon-chevron-right"]/../@href'
 type = 'job-listing'
 driver = 'playwright'
 keywords = ['junior', 'associate', 'graduate', 'Data']
