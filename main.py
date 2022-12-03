@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 from scrapy.crawler import CrawlerProcess, install_reactor
 from scrapy_playwright.page import PageMethod
-from scrapy.shell import inspect_response
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -193,7 +192,7 @@ def check_data(old_file, new_file, chat_ids, config, website):
                                     listing['position'].strip())
                     message = craft_message(reason='new_job_listing', new_item=listing)
                     send_message(message, chat_ids)
-        shutil.copy2(new_file, old_file)
+    shutil.copy2(new_file, old_file)
 
 
 def main():
