@@ -12,10 +12,17 @@ I needed a scraper that was specific enough for the need of finding new items on
 Make sure you have Python 3 installed. I recommend [Miniconda]( https://docs.conda.io/en/latest/miniconda.html ), I find it easier to manage your environments.
 
 ```
+conda create -n webscrape python=3.9
+conda activate webscrape
 pip3 install -r requirements.txt
+playwright install
 ```
 
 ## Using PTSW
+```
+python3 main.py -c <config_file> -e <env_chat_id>
+```
+
 You will need to create 2 files:
 * A .env file, in the root of the repo, containing
 ```
@@ -37,10 +44,9 @@ title = 'div/h6/text()'
 price = 'div[1]/p/text()'
 stoc = 'div[2]/p/text()[1]'
 date = 'div[2]/p/text()[3]'
-relative-href = '../../../../a/@href'
+href = '../../../../a/@href'
 ```
 The root-xpath needs to be a common xpath for all the other fields (something like an item container). We can place any number of xpaths in the fields dict.
-The title and price fields are mandatory, in order to check for new products or new price updates. The `relative-href` field is used in order to correctly send the link
 to the product via telegram (some products show the href in the html source relative to the current address, so we just concatenate the relative-href to the link field in order to get the full address).
 
 We receive updates only when there are new products listed and their price is lower than the `price-limit`, or when a product updates its price and the difference between the old price and the new price is greater than the `threshold`.
@@ -59,20 +65,6 @@ I suggest setting up a cron job that runs this script periodically. Here's an ex
 
 Beware that some sites might [ban your ip](https://docs.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned) if there is too much traffic.
 
-## Docker
+## Devcontainers
 
-I also wrote a Dockerfile for it, run it with
-
-```
-docker build -t ptsw .
-docker run -d ptsw
-```
-
-## Dependencies
-Some python3 libraries:
-* scrapy
-* requests
-* python-dotenv
-* toml
-
-
+You can also setup the environment using [Dev containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers). Just install the extension, `open command menu -> Dev Containers: Rebuild and Reopen in Container`
