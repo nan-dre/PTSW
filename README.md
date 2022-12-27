@@ -34,13 +34,15 @@ CHAT_ID='<your-telegram-account-chat-id>'
 
 * A config.toml file, with the following structure
 ```toml
-[site]
+name = 'name'
 link = '<website>'
 root = '//div[@class="css-1apmciz"]'
-threshold = 10
+next-page = '<next-page-xpath>'
+type= 'product-listing'
 price-limit = 2200
+threshold = 10
 
-[olx.fields]
+[fields]
 title = 'div/h6/text()'
 price = 'div[1]/p/text()'
 stoc = 'div[2]/p/text()[1]'
