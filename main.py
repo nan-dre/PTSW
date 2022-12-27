@@ -154,6 +154,57 @@ def check_data(old_file, new_file, chat_ids, config, website):
     old_data = json.load(old)
     try:
         new_data = json.load(new)
+        if config['type'] == 'product-listing':
+            grouped_old_data = dict()
+            grouped_new_data = dict()
+            for item in old_data:
+                grouped_old_data.setdefault(item['product'], []).append(item)
+            for item in new_data:
+                grouped_new_data.setdefault(item['product'], []).append(item)
+
+            for product in grouped_new_data:
+                if grouped_old_data.get(product) is not None:
+                    old_items = {item['href']: {'price': item['price'], 'stoc': item['stoc']}
+                                    for item in grouped_old_data[product]}
+                else:
+                    old_items = {}
+                # Check if there are new products by comparing the keys specified in criterias
+                for new_item in grouped_new_data[product]:
+                    message = None
+                    key = new_item['href']
+                    stock = new_item.get('stoc').strip().lower()
+                    new_price = parse_price(new_item['price'])
+                    if new_price <= config['price-limit']:
+                        if key not in old_items:
+                            if stock not in IGNORED_KEYWORD:
+                                logging.info("New item - " +
+                                                new_item['title'].strip())
+                                message = craft_message(
+                                    new_item=new_item, reason='new')
+                        elif new_item['stoc'] != old_items[key]['stoc']:
+                            logging.info("New stock update " + key.strip())
+                            message = craft_message(
+                                reason='stoc', new_item=new_item, old_item=old_items[key])
+                        else:
+                            old_price = parse_price(
+                                old_items[key]['price'])
+                            if abs(old_price - new_price) > config['threshold']:
+                                logging.info(
+                                    f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
+                                message = craft_message(
+                                    reason='price', new_item=new_item, old_item=old_items[key])
+                    if message != None:
+                        send_message(message, chat_ids)
+        elif config['type'] == 'job-listing':
+            for listing in new_data:
+                position = listing.get('position').lower()
+                for word in config['keywords']:
+                    if word in position and listing not in old_data:
+                        logging.info("New position - " +
+                                        listing['position'].strip())
+                        message = craft_message(reason='new_job_listing', new_item=listing)
+                        send_message(message, chat_ids)
+        shutil.copy2(new_file, old_file)
     except:
         new_data = [] 
         send_message(
@@ -161,57 +212,6 @@ def check_data(old_file, new_file, chat_ids, config, website):
         logging.warning(
             f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: WARNING: Couldn't scrape items from {website}!")
 
-    if config['type'] == 'product-listing':
-        grouped_old_data = dict()
-        grouped_new_data = dict()
-        for item in old_data:
-            grouped_old_data.setdefault(item['product'], []).append(item)
-        for item in new_data:
-            grouped_new_data.setdefault(item['product'], []).append(item)
-
-        for product in grouped_new_data:
-            if grouped_old_data.get(product) is not None:
-                old_items = {item['href']: {'price': item['price'], 'stoc': item['stoc']}
-                                for item in grouped_old_data[product]}
-            else:
-                old_items = {}
-            # Check if there are new products by comparing the keys specified in criterias
-            for new_item in grouped_new_data[product]:
-                message = None
-                key = new_item['href']
-                stock = new_item.get('stoc').strip().lower()
-                new_price = parse_price(new_item['price'])
-                if new_price <= config['price-limit']:
-                    if key not in old_items:
-                        if stock not in IGNORED_KEYWORD:
-                            logging.info("New item - " +
-                                            new_item['title'].strip())
-                            message = craft_message(
-                                new_item=new_item, reason='new')
-                    elif new_item['stoc'] != old_items[key]['stoc']:
-                        logging.info("New stock update " + key.strip())
-                        message = craft_message(
-                            reason='stoc', new_item=new_item, old_item=old_items[key])
-                    else:
-                        old_price = parse_price(
-                            old_items[key]['price'])
-                        if abs(old_price - new_price) > config['threshold']:
-                            logging.info(
-                                f"New price for {new_item['title'].strip()} - OLD: {old_price}, NEW: {new_price}")
-                            message = craft_message(
-                                reason='price', new_item=new_item, old_item=old_items[key])
-                if message != None:
-                    send_message(message, chat_ids)
-    elif config['type'] == 'job-listing':
-        for listing in new_data:
-            position = listing.get('position').lower()
-            for word in config['keywords']:
-                if word in position and listing not in old_data:
-                    logging.info("New position - " +
-                                    listing['position'].strip())
-                    message = craft_message(reason='new_job_listing', new_item=listing)
-                    send_message(message, chat_ids)
-    shutil.copy2(new_file, old_file)
 
 
 def main():
