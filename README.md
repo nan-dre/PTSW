@@ -15,6 +15,7 @@ Make sure you have Python 3 installed. I recommend [Miniconda]( https://docs.con
 conda create -n webscrape python=3.9
 conda activate webscrape
 pip3 install -r requirements.txt
+playwright install-deps
 playwright install
 ```
 
