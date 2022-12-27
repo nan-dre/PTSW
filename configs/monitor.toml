@@ -1,10 +1,12 @@
-[emag]
+name = 'monitor'
 link = "https://www.emag.ro/monitoare-lcd-led/filter/rezolutie-optima-f6126,qhd-qhd-v31145/tehnologie-display-f6150,ips-v22247/rata-de-refresh-maximala-f6605,144-hz-v24571/rata-de-refresh-maximala-f6605,165-hz-v24576/sort-priceasc/c?ref=delete_filter_left_bar"
 root = '//div[@class="card-item card-standard js-product-data"]'
+next-page = '//a[contains(@class, "js-next-page")]/@href'
+type = 'product-listing'
+price-limit = 2000
 threshold = 0
-price-limit = 800
 
-[emag.fields]
+[fields]
 title = "div/div/div/div/a/text()"
 stoc = "div/div/div/div/div/div/text()"
 price = 'div/div/div/div/p[@class="product-new-price"]/text()'
