@@ -29,6 +29,8 @@ OUTPUT_PATH = Path("./data/")
 NEW_FILE = Path('new.json')
 OLD_FILE = Path('old.json')
 
+IGNORED_KEYWORD = ["stoc epuizat"]
+
 
 class LinksSpider(scrapy.Spider):
     name = "links"
@@ -57,7 +59,6 @@ class LinksSpider(scrapy.Spider):
     def parse_wrapper(self, product):
         def parse(response):
             logging.info(f"response.status:{response.status} - {product}")
-            # inspect_response(response, self)
             for item in response.xpath(self.dictionary['root']):
                 payload = {}
                 payload['product'] = product
@@ -96,7 +97,7 @@ def send_message(message, chat_ids):
 def craft_message(reason, new_item, old_item=None):
     message = ""
     if reason == 'new':
-        message += f'NEW product'
+        message += f'NEW product\n'
     elif reason == 'stoc':
         message += f'STOCK change \nOLD stock: {old_item["stoc"].strip()} \nNEW stock: {new_item["stoc"].strip()}\n'
     elif reason == 'price':
@@ -178,13 +179,15 @@ def check_data(old_file, new_file, chat_ids, config, website):
             for new_item in grouped_new_data[product]:
                 message = None
                 key = new_item['href']
+                stock = new_item.get('stoc').strip().lower()
                 new_price = parse_price(new_item['price'])
                 if new_price <= config['price-limit']:
                     if key not in old_items:
-                        logging.info("New item - " +
-                                        new_item['title'].strip())
-                        message = craft_message(
-                            new_item=new_item, reason='new')
+                        if stock not in IGNORED_KEYWORD:
+                            logging.info("New item - " +
+                                            new_item['title'].strip())
+                            message = craft_message(
+                                new_item=new_item, reason='new')
                     elif new_item['stoc'] != old_items[key]['stoc']:
                         logging.info("New stock update " + key.strip())
                         message = craft_message(
