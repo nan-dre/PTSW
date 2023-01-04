@@ -2,3 +2,4 @@ data/
 .env
 .vscode/
 subscribers.toml
+logs/
