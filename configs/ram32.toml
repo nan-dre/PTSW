@@ -1,10 +1,10 @@
 name = 'pcgarage'
-link = 'https://www.pcgarage.ro/placi-video/filtre/chipset-seria-geforce-rtx-3000/memorie-dimensiune-memorie-12288/'
+link = 'https://www.pcgarage.ro/memorii/filtre/general-capacitate-32-gb/general-frecventa-3600/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 next-page = '//a[@aria-label="Pagina urmatoare"]/@href'
 driver = 'playwright'
 type = 'product-listing'
-price-limit = 2500 
+price-limit = 800
 threshold = 0
 
 [fields]
