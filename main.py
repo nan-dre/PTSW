@@ -141,7 +141,11 @@ def start_scraping(config, output_file):
 
 
 def parse_price(price):
-    return float(price.lower().replace('.', '').replace(' ', '').replace(',', '.').replace('lei', '').replace('ron', '').strip())
+    try:
+        return float(price.lower().replace('.', '').replace(' ', '').replace(',', '.').replace('lei', '').replace('ron', '').strip())
+    except:
+        # Price is none
+        return 9999
 
 
 def check_data(old_file, new_file, chat_ids, config, website):
@@ -173,7 +177,7 @@ def check_data(old_file, new_file, chat_ids, config, website):
                     message = None
                     key = new_item['href']
                     stock = new_item.get('stoc').strip().lower()
-                    new_price = parse_price(new_item['price'])
+                    new_price = parse_price(new_item.get('price'))
                     if new_price <= config['price-limit']:
                         if key not in old_items:
                             if stock not in IGNORED_KEYWORD:
@@ -205,12 +209,13 @@ def check_data(old_file, new_file, chat_ids, config, website):
                         message = craft_message(reason='new_job_listing', new_item=listing)
                         send_message(message, chat_ids)
         shutil.copy2(new_file, old_file)
-    except:
+    except Exception as e:
         new_data = [] 
         send_message(
-            f"WARNING: Couldn't scrape items from {website}\\!", chat_ids)
-        logging.warning(
-            f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: WARNING: Couldn't scrape items from {website}!")
+            f"ERROR: Couldn't scrape items from {website}\\!", chat_ids)
+        logging.error(
+            f"{datetime.now().strftime('%m/%d/%Y %H:%M:%S')}: ERROR: Couldn't scrape items from {website}!")
+        logging.exception(e)
 
 
 
@@ -241,7 +246,7 @@ def main():
         chat_ids.append(id)
 
     config = toml.load(args.config_path)
-    start_scraping(config, output_file)
+    # start_scraping(config, output_file)
     check_data(old_file, output_file, chat_ids, config, config_path.stem)
 
 
