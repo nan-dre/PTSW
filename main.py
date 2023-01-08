@@ -29,7 +29,7 @@ OUTPUT_PATH = Path("./data/")
 NEW_FILE = Path('new.json')
 OLD_FILE = Path('old.json')
 
-IGNORED_KEYWORD = ["stoc epuizat"]
+IGNORED_KEYWORD = ["stoc epuizat", "nu este in stoc"]
 
 
 class LinksSpider(scrapy.Spider):
@@ -246,7 +246,7 @@ def main():
         chat_ids.append(id)
 
     config = toml.load(args.config_path)
-    # start_scraping(config, output_file)
+    start_scraping(config, output_file)
     check_data(old_file, output_file, chat_ids, config, config_path.stem)
 
 
