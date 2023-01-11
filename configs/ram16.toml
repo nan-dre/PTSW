@@ -1,11 +1,11 @@
 name = 'pcgarage'
-link = 'https://www.pcgarage.ro/memorii/filtre/general-capacitate-16-gb/general-frecventa-3600/'
+link = 'https://www.pcgarage.ro/memorii/filtre/general-capacitate-16-gb/general-frecventa-3600/general-latenta-cas-16/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 next-page = '//a[@aria-label="Pagina urmatoare"]/@href'
 type = 'product-listing'
 driver = 'playwright'
-price-limit = 400
-threshold = 0
+price-limit = 300
+threshold = 10
 
 
 [fields]

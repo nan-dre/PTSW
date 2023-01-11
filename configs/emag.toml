@@ -3,6 +3,7 @@ link = "https://www.emag.ro/placi_video/filter/procesor-video-f9897,nvidia-gefor
 root = '//div[@class="card-item card-standard js-product-data"]'
 next-page = '//a[contains(@class, "js-next-page")]/@href'
 type = 'product-listing'
+driver = 'playwright'
 price-limit = 2200
 threshold = 10
 

@@ -1,7 +1,11 @@
+name = 'monitor165pcgarage'
+link = 'https://www.pcgarage.ro/monitoare-led/filtre/caracteristici-rezolutie-2560-x-1440/caracteristici-tip-panel-ips/caracteristici-refresh-rate-165/'
 root = '//div[@class="product_box_parent col-xs-24 col-sm-12 col-md-8 col-lg-6 col-xl-4 col-xxl-3"]'
 next-page = '//a[@aria-label="Pagina urmatoare"]/@href'
-driver = 'playwright'
 type = 'product-listing'
+driver = 'playwright'
+price-limit = 1600
+threshold = 20
 
 [fields]
 title = './/h2[@class="my-0"]/a/text()'

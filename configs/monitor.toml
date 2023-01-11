@@ -3,7 +3,8 @@ link = "https://www.emag.ro/monitoare-lcd-led/filter/rezolutie-optima-f6126,qhd-
 root = '//div[@class="card-item card-standard js-product-data"]'
 next-page = '//a[contains(@class, "js-next-page")]/@href'
 type = 'product-listing'
-price-limit = 1700
+driver = 'playwright'
+price-limit = 1600
 threshold = 30
 
 [fields]
