@@ -8,7 +8,7 @@ price-limit = 1600
 threshold = 30
 
 [fields]
-title = "div/div/div/div/a/text()"
-stoc = "div/div/div/div/div/div/text()"
-price = 'div/div/div/div/p[@class="product-new-price"]/text()'
-href = "div/div/div/div/a/@href"
+title = ".//a[contains(@class, 'card-v2-title')]/text()"
+stoc = ".//div[contains(@class, 'card-estimate-placeholder')]/div/text()"
+price = './/p[@class="product-new-price"]/text()'
+href = ".//a[contains(@class, 'card-v2-title')]/@href"
