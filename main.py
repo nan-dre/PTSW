@@ -178,7 +178,7 @@ def check_data(old_file, new_file, chat_ids, config, website):
                     key = new_item['href']
                     stock = new_item.get('stoc').strip().lower()
                     new_price = parse_price(new_item.get('price'))
-                    if new_price <= config['price-limit']:
+                    if new_price <= config.get('price-upper-limit', 9999) and new_price >= config.get('price-lower-limit', 0):
                         if key not in old_items:
                             if stock not in IGNORED_KEYWORD:
                                 logging.info("New item - " +

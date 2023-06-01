@@ -4,7 +4,7 @@ root = '//div[@class="nice_product_item"]'
 next-page = '//a[@rel="next"]/@href'
 type = 'product-listing'
 threshold = 10
-price-limit = 2200
+price-upper-limit = 2200
 
 [fields]
 title = 'div/a/@title'

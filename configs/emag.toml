@@ -1,10 +1,11 @@
 name = 'emag'
-link = "https://www.emag.ro/placi_video/filter/procesor-video-f9897,nvidia-geforce-rtx-3060-v-9758167/sort-priceasc/c"
+link = "https://www.emag.ro/search/poco%20f5?ref=effective_search"
 root = '//div[@class="card-item card-standard js-product-data"]'
 next-page = '//a[contains(@class, "js-next-page")]/@href'
 type = 'product-listing'
 driver = 'playwright'
-price-limit = 2200
+price-upper-limit = 3500
+price-lower-limit = 1000
 threshold = 10
 
 [fields]

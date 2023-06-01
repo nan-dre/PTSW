@@ -4,7 +4,7 @@ root = '//div[@class="card-item card-standard js-product-data"]'
 next-page = '//a[contains(@class, "js-next-page")]/@href'
 type = 'product-listing'
 driver = 'playwright'
-price-limit = 1600
+price-upper-limit = 1600
 threshold = 30
 
 [fields]

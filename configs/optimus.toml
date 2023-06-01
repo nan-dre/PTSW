@@ -3,7 +3,7 @@ link = 'https://www.optimusdigital.ro/ro/288-placi-raspberry-pi?orderby=quantity
 root = '//li[contains(@class, "ajax_block_product")]'
 next-page = '//li[contains(@id, "pagination_next")]/a/@href'
 type = 'product-listing'
-price-limit = 800
+price-upper-limit = 800
 threshold = 10
 
 [fields]
