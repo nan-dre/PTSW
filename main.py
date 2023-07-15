@@ -13,6 +13,7 @@ from scrapy.crawler import CrawlerProcess, install_reactor
 from scrapy_playwright.page import PageMethod
 from datetime import datetime
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger('scrapy').propagate = False
@@ -26,8 +27,10 @@ load_dotenv()
 TOKEN = os.getenv('TOKEN')
 BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
 OUTPUT_PATH = Path("./data/")
-NEW_FILE = Path('new.json')
-OLD_FILE = Path('old.json')
+today = datetime.now()
+yesterday = today - timedelta(days=1)
+NEW_FILE = Path(f'{today.strftime("%Y%m%d")}.json')
+OLD_FILE = Path(f'{yesterday.strftime("%Y%m%d")}.json')
 
 IGNORED_KEYWORD = ["stoc epuizat", "nu este in stoc"]
 
@@ -68,6 +71,9 @@ class LinksSpider(scrapy.Spider):
                             self.dictionary['link'], item.xpath(path).get())
                     else:
                         payload[field] = item.xpath(path).get()
+                    if payload[field] is None:
+                        if field == 'stoc':
+                            payload[field] = 'stoc necunoscut'
                 yield payload
             if self.dictionary.get('next-page') is not None:
                 next_page = response.xpath(self.dictionary.get('next-page')).get()
